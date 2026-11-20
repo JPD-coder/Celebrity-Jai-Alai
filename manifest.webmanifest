@@ -1,0 +1,29 @@
+{
+ "name": "Celebrity Jai Alai",
+ "short_name": "Celebrity Jai Alai",
+ "description": "Limited-edition celebrity jai alai match-ups.",
+ "start_url": "./",
+ "scope": "./",
+ "display": "standalone",
+ "orientation": "any",
+ "background_color": "#0b0c0f",
+ "theme_color": "#0b0c0f",
+ "icons": [
+  {
+   "src": "icon-192.png",
+   "sizes": "192x192",
+   "type": "image/png"
+  },
+  {
+   "src": "icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png"
+  },
+  {
+   "src": "icon-maskable-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "maskable"
+  }
+ ]
+}
