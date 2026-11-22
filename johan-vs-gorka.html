@@ -18,7 +18,7 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
 <script>
-window.FL_BUILD = "20261122082518";
+window.FL_BUILD = "20261122093405";
 window.FL_RELAY = "wss://relay-production-5e78c1a2.up.railway.app/ws";
 window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
 window.FL_FEEDBACK = "https://relay-production-5e78c1a2.up.railway.app/feedback";
@@ -3828,11 +3828,14 @@ window.FLFeedback = (function () {
     var P = PROMO, el = promoEl, ready = promoSel[0] != null && promoSel[1] != null;
     [0, 1].forEach(function (s) {
       var w = promoSel[s] == null ? null : P.people[promoSel[s]], side = s ? 'R' : 'L', r = ROSTER[promoTeams[s]], tc = r.ui === '#f2efe6' ? '#c9a55c' : r.ui;
-      el.querySelector('.pm-half[data-i="' + s + '"]').src = w ? w.art[side][promoTeams[s]] : P.blank[side][promoTeams[s]];
+      el.querySelector('.pm-half[data-i="' + s + '"]').src = w ? (w.solo ? w.solo[side] : w.art[side][promoTeams[s]]) : P.blank[side][promoTeams[s]];   // solo: a player with no team uniform, one picture
       var nb = el.querySelector('.pm-name[data-i="' + s + '"]'); nb.style.setProperty('--tc', tc); nb.setAttribute('aria-pressed', String(!!w && s === promoMe)); nb.disabled = !w;
       nb.querySelector('span').textContent = w ? w.name : (s ? 'Player 2' : 'Player 1'); nb.querySelector('em').textContent = !w ? 'Pick below' : s === promoMe ? 'You' : 'CPU';
       var ps = el.querySelector('.pm-who[data-i="' + s + '"]'); if (ps) { ps.value = w ? String(promoSel[s]) : ''; ps.style.setProperty('--tc', w ? tc : '#c9a55c'); [].forEach.call(ps.options, function (o) { o.disabled = o.value !== '' && +o.value === promoSel[1 - s]; }); }
-      var sel = el.querySelector('.pm-team:not(.pm-who)[data-i="' + s + '"]'); sel.value = String(promoTeams[s]); sel.style.setProperty('--tc', tc);
+      var sel = el.querySelector('.pm-team:not(.pm-who)[data-i="' + s + '"]'); var nt = sel.querySelector('option[value="none"]');
+      if (w && w.solo) { if (!nt) { nt = document.createElement('option'); nt.value = 'none'; nt.textContent = 'No Team Available'; sel.appendChild(nt); } sel.value = 'none'; sel.disabled = true; tc = '#c9a55c'; }   // shown only while such a player is picked; never a choice
+      else { if (nt) sel.removeChild(nt); sel.disabled = false; sel.value = String(promoTeams[s]); }
+      sel.style.setProperty('--tc', tc);
     });
     $('pmAds').disabled = $('pmFree').disabled = !ready;
     el.querySelector('.pm-art').setAttribute('aria-label', ready ? P.people[promoSel[0]].name + ' versus ' + P.people[promoSel[1]].name : 'Pick two players');
