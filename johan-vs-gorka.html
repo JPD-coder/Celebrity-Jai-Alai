@@ -18,7 +18,7 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
 <script>
-window.FL_BUILD = "20261126090002";
+window.FL_BUILD = "20261126090859";
 window.FL_RELAY = "wss://relay-production-5e78c1a2.up.railway.app/ws";
 window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
 window.FL_FEEDBACK = "https://relay-production-5e78c1a2.up.railway.app/feedback";
@@ -2136,9 +2136,9 @@ window.FLFeedback = (function () {
   function changeView(v) {                                         // same match, different camera: allowed at any moment
     if (!MULTI) return;
     if (v === 'table') { cfg.table = true; save(); buildSetup(); show(); return; }                    // Cocktail Table is its own screen: it opens when the match starts
-    if (!v && view === (PROMO ? 'aerial' : 'side') && mode === 'match' && !net.role && window.Table) { var tsc = game ? game.score.slice() : null; cfg.table = true; save(); startDemo(); openTable(tsc); return; }   // cycling modes in a match: Amateur, then Cocktail Table
+    if (!v && view === (PROMO && !PROMO.dania ? 'aerial' : 'side') && mode === 'match' && !net.role && window.Table) { var tsc = game ? game.score.slice() : null; cfg.table = true; save(); startDemo(); openTable(tsc); return; }   // cycling modes in a match: Amateur, then Cocktail Table
     cfg.table = false;
-    var order = (PROMO ? ['side', 'aerial'] : ['aerial', 'side', 'vintage', 'retro', 'sixties']).filter(viewOK); if (!v) v = order[(order.indexOf(view) + 1) % order.length];
+    var order = (PROMO ? (PROMO.dania ? ['aerial', 'side'] : ['side', 'aerial']) : ['aerial', 'side', 'vintage', 'retro', 'sixties']).filter(viewOK); if (!v) v = order[(order.indexOf(view) + 1) % order.length];
     setView(v); cfg.view = view; save(); trail = []; v3trail.length = 0; v3hits.length = 0;
     for (var i = 0; game && i < 4; i++) { game.players[i]._pose = null; game.players[i]._tip = null; game.players[i]._tipS = null; }
     lastHolder = -99; sidesOn = null; buildSetup(); show();
@@ -2501,7 +2501,7 @@ window.FLFeedback = (function () {
     if (a === 'lang-en' || a === 'lang-es') { cfg.lang = a === 'lang-en' ? 'en' : 'es'; save(); wzPaint(); return true; }
     if (a === 'league' || a === 'world') { setComp(a); picked = [false, false]; wzShow(4); return true; }
     if (a === 'hvp') { WZ.hvp = true; hvpAsk(); return true; }
-    if (a === 'dania') { if (window.FL_NAV) window.FL_NAV(a); return true; }
+    if (a === 'dania') { if (window.FL_NAV) window.FL_NAV('dania' + (cfg.singles ? 'S' : 'D') + (cfg.seats[0] ? 1 : 0) + (cfg.seats[1] ? 1 : 0)); return true; }
     if (a === 'celeb' || a === 'allstar') { if (window.FL_NAV) window.FL_NAV(a); else window.open(a === 'celeb' ? CELEB_URL : ALLSTAR_URL, '_blank'); return true; }
     if (a === 'play') { if (net.role === 'guest') { $('wzMsg').textContent = 'Your friend is hosting: the match starts on their phone.'; return true; } if (net.role === 'host' && !net.peer) { $('wzMsg').textContent = 'Waiting for your friend to join with your code.'; return true; } if (!bothPicked()) { $('wzMsg').textContent = picked[0] || picked[1] ? 'Pick the other team.' : 'Pick both teams.'; return true; } $('wzMsg').textContent = ''; posterGo(); return true; }
     if (a === 'contact') { $('wzContact').hidden = false; $('wzCNote').textContent = ''; return true; }
@@ -2977,7 +2977,7 @@ window.FLFeedback = (function () {
     window.Table.open({ teams: tm, singles: !!cfg.singles, target: cfg.target, level: cfg.level, pace: PACE[cfg.pace] || 0.88, rebHold: rebHold(), aimK: aimK(), sound: !!cfg.sound, names: shotNames(), score: score || null, intro: false, ads: window.FL_ADS ? adEvery() : 0, hooks: {
       point: function (w) { pmPoint(w); },
       menu: function () { PM.on = false; window.Table.close(); startDemo(); wzHome(); },
-      mode: function (sc) { window.Table.close(); cfg.table = false; var nx = PROMO ? 'side' : viewOK('vintage') ? 'vintage' : 'aerial'; setView(nx); cfg.view = view; save(); startMatch(sc || undefined); },   // on to the next mode, same match
+      mode: function (sc) { window.Table.close(); cfg.table = false; var nx = PROMO ? (PROMO.dania ? 'aerial' : 'side') : viewOK('vintage') ? 'vintage' : 'aerial'; setView(nx); cfg.view = view; save(); startMatch(sc || undefined); },   // on to the next mode, same match
       music: window.FL_MUSIC ? function () { musToggle(); } : null, musicOn: function () { return !!spLive; } } });
     try { musicUI(); } catch (e) { /* no player on this page */ }   // if music is already on, it moves to the 80s list
   }
@@ -4427,7 +4427,7 @@ window.FLFeedback = (function () {
   var promoEl = null, promoMode = PROMO ? PROMO.modes[0] : 'aerial', promoMe = 0;
   var promoSel = PROMO ? (PROMO.choose ? [null, null] : [0, 1]) : [], promoTP = [false, false], promoTeams = PROMO ? (PROMO.slotTeams || PROMO.people.slice(0, 2).map(function (w) { return w.team; })) : [];   // per slot: who, and in which uniform
   var NOBODY = { name: '', look: 0, face: null };
-  var dFmt = 'doubles', dBack = 'you';                            // singles or doubles, and who plays your back court in doubles
+  var DN = String(window.FL_DN || 'D11'), dFmt = DN.charAt(0) === 'S' ? 'singles' : 'doubles', dSeat = DN.charAt(1) === '0' && DN.charAt(2) === '0' ? [1, 1] : [DN.charAt(1) === '0' ? 0 : 1, DN.charAt(2) === '0' ? 0 : 1];   // singles or doubles, and which of your two players you play: both chosen on step 2
   var dSel = [[null, null]], dT = [NOBODY, NOBODY];              // Dania Beach Invitational: you pick a front courter and a back courter (one of them for singles)
   var PM = { on: false, open: false, over: false, posts: [], pts: [0, 0, 0, 0, 0, 0, 0, 0], line: [], court: [0, 1], opp: 1, n: 0, log: [], champ: -1 };   // pari-mutuel rotation: eight posts, you are Post 1
   function dWho(t, back) { var p = PM.posts[t === 0 ? 0 : PM.opp], i = !p ? null : back ? p.b : p.f; if (p && i == null) i = back ? p.f : p.b; return i == null ? NOBODY : PROMO.people[i]; }
@@ -4444,7 +4444,7 @@ window.FLFeedback = (function () {
     cfg.comp = 'league'; cfg.pick = [promoTeams[promoMe], promoTeams[1 - promoMe]]; picked = [true, true];
     if (PROMO.dania) { if (dCount(0) !== (dFmt === 'singles' ? 1 : 2)) return; pmReset(); PM.on = true; PM.open = false; cfg.pick = [14, 15]; } else
     if (promoSel[0] == null || promoSel[1] == null) return;
-    cfg.singles = PROMO.dania ? dFmt === 'singles' : true; cfg.seats = PROMO.dania && dFmt !== 'singles' && dBack === 'cpu' ? [1, 0, 0, 0] : [1, 1, 0, 0]; cfg.target = PROMO.dania ? 9999 : PROMO.target || 15; cfg.level = 'normal'; cfg.pace = 'standard';
+    cfg.singles = PROMO.dania ? dFmt === 'singles' : true; cfg.seats = PROMO.dania && dFmt !== 'singles' ? [dSeat[0], dSeat[1], 0, 0] : [1, 1, 0, 0]; cfg.target = PROMO.dania ? 9999 : PROMO.target || 15; cfg.level = 'normal'; cfg.pace = 'standard';
     cfg.who = 'men'; cfg.whoT = ['men', 'men'];
     cfg.table = promoMode === 'table';
     if (!cfg.table) { setView(promoMode); cfg.view = view; }
@@ -4545,13 +4545,13 @@ window.FLFeedback = (function () {
     el.querySelector('.db-field').innerHTML = PMC.map(function (c, k) { var nm = PM.posts[k] ? pmPair(PM.posts[k]).name : '';
       return '<li class="' + (k === 0 ? 'pb-you' : '') + '"><span class="pb-chip" style="background:' + c[1] + ';color:' + (k === 2 || k === 5 ? '#111' : '#fff') + '">' + (k + 1) + '</span><span class="pb-nm">' + (nm ? esc(nm) : k === 0 ? 'Pick your team' : 'CPU team') + '</span><em>' + (k === 0 ? 'You' : 'CPU') + '</em></li>'; }).join('');
     $('pmAds').disabled = $('pmFree').disabled = !ready; el.classList.toggle('pm-ready', ready);
-    el.querySelector('.db-hint').textContent = !ready ? (one ? 'Singles: pick one player, front court or back court. The CPU fills Posts 2 to 8.' : 'Doubles: pick a front courter and a back courter. The CPU fills Posts 2 to 8.') : (one ? 'Singles' : 'Doubles') + ' \u00b7 Spectacular 9 \u00b7 You are Post 1 in red';
-    el.querySelector('.db-fmt').value = dFmt; var bk = el.querySelector('.db-back'); bk.value = dBack; bk.disabled = one; bk.parentNode.style.opacity = one ? '.4' : '';
+    el.querySelector('.db-hint').textContent = !ready ? (one ? 'Singles: pick one player, front court or back court. The CPU fills Posts 2 to 8.' : 'Doubles: pick a front courter and a back courter. The CPU fills Posts 2 to 8.') : (one ? 'Singles' : 'Doubles' + (dSeat[0] && dSeat[1] ? '' : dSeat[0] ? ' (CPU plays your back court)' : ' (CPU plays your front court)')) + ' \u00b7 Spectacular 9 \u00b7 You are Post 1 in red';
+
     el.querySelector('.db-art').setAttribute('aria-label', ready ? 'Post 1, ' + dT[0].name + ', against seven CPU teams' : 'Pick your team');
   }
   function dBuild(el, NAMES) {
     var P = PROMO, st = document.createElement('style'), F = 'var(--body,system-ui,sans-serif)', OR = '#f26a1b', NV = '#0f1f4b';
-    st.textContent = '#promo.pm-dania{--ch:clamp(88px,calc((100dvh - 460px) / 2),190px)}' +
+    st.textContent = '#promo.pm-dania{--ch:clamp(88px,calc((100dvh - 412px) / 2),190px)}' +
       '#promo.pm-dania .pm-tag,#promo.pm-dania .pm-back{color:' + OR + '}#promo.pm-dania .pm-dots i{background:' + OR + '}' +
       '#promo .db-art{position:relative;align-self:center;width:min(100%,440px);display:grid;grid-template-columns:minmax(0,.82fr) minmax(0,1fr);gap:0 10px}' +
       '#promo .db-col{display:flex;flex-direction:column;gap:6px;min-width:0}' +
@@ -4599,9 +4599,8 @@ window.FLFeedback = (function () {
       '<h2 class="pm-tag">' + esc(P.tag) + '</h2>' +
       '<div class="db-art" role="group" aria-label=""><div class="db-col"><div class="db-me">Post 1 \u00b7 You</div><div class="db-card" data-k="0"></div><div class="db-card" data-k="1"></div></div>' +
       '<div class="db-col"><div class="db-me db-cpu">Pari-Mutuel \u00b7 8 Posts</div><ol class="db-field"></ol></div><span class="pm-vs" aria-hidden="true">VS</span></div>' +
-      '<div class="pm-ctl"><div class="pm-lbl">Pick Your Team</div><div class="pm-row pm-teams">' + sel('F') + sel('B') + '</div>' +
-      '<div class="pm-row pm-teams"><label class="pm-pick"><span class="pm-sr">Singles or doubles</span><select class="pm-team db-opt db-fmt"><option value="doubles">Doubles</option><option value="singles">Singles</option></select></label>' +
-      '<label class="pm-pick"><span class="pm-sr">Who plays your back court in doubles</span><select class="pm-team db-opt db-back"><option value="you">Back Court: You</option><option value="cpu">Back Court: CPU</option></select></label></div>' +
+      '<div class="pm-ctl"><div class="pm-lbl">' + (dFmt === 'singles' ? 'Pick Your Player' : 'Pick Your Team') + '</div><div class="pm-row pm-teams">' + sel('F') + sel('B') + '</div>' +
+      
       '<p class="db-hint" aria-live="polite"></p>' +
       '<div class="pm-lbl">Mode</div><div class="pm-row pm-teams"><label class="pm-pick"><span class="pm-sr">Mode</span><select class="pm-team db-mode">' + P.modes.map(function (m) { return '<option value="' + m + '"' + (m === promoMode ? ' selected' : '') + '>' + NAMES[m] + '</option>'; }).join('') + '</select></label></div>' +
       '<div class="pm-row pm-go"><button type="button" id="pmAds">Play Free Now<small>With Ads</small></button><button type="button" id="pmFree">Play Ad Free Now<small>$0.99 per month</small></button></div>' +
@@ -4609,7 +4608,6 @@ window.FLFeedback = (function () {
     document.body.appendChild(el); promoEl = el;
     if (el.querySelector('#pmBack')) el.querySelector('#pmBack').addEventListener('click', function () { window.FL_NAV('step3'); });
     el.addEventListener('change', function (e) { var md = e.target.closest('select.db-mode'); if (md) { promoMode = md.value; return; }
-      var op = e.target.closest('select.db-opt'); if (op) { if (op.classList.contains('db-fmt')) { dFmt = op.value; if (dFmt === 'singles' && dSel[0][0] != null) dSel[0][1] = null; } else dBack = op.value; pmDraw(); dPaint(); return; }
       var s = e.target.closest('select.db-sel'); if (!s) return; var k = s.getAttribute('data-pos') === 'F' ? 0 : 1; dSel[0][k] = s.value === '' ? null : +s.value; if (dFmt === 'singles' && dSel[0][k] != null) dSel[0][1 - k] = null;   // singles: one player only, from either court
       pmDraw(); dPaint(); });
     $('pmAds').addEventListener('click', function () { promoGo(true); });
