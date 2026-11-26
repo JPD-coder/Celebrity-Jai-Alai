@@ -18,7 +18,7 @@ img { max-width: 100%; }
 [hidden] { display: none !important; }
 </style>
 <script>
-window.FL_BUILD = "20261126143507";
+window.FL_BUILD = "20261126144541";
 window.FL_RELAY = "wss://relay-production-5e78c1a2.up.railway.app/ws";
 window.FL_STATS = "https://relay-production-5e78c1a2.up.railway.app/t";
 window.FL_FEEDBACK = "https://relay-production-5e78c1a2.up.railway.app/feedback";
@@ -3356,7 +3356,7 @@ window.FLFeedback = (function () {
     var showRally = game.rally > 1 && game.phase === 'rally';              // the rally count takes the place of "play to" while a rally is on
     ctx.font = '700 25px ' + DISPLAY; ctx.fillStyle = MUTED; ctx.textAlign = 'left';
     var w0 = whoOf(0), w1 = whoOf(1), whoTag = HVP ? '' : w0 !== w1 ? (w0 === 'men' ? 'MEN' : w0 === 'women' ? 'WOMEN' : 'MIXED') + ' V ' + (w1 === 'men' ? 'MEN' : w1 === 'women' ? 'WOMEN' : 'MIXED') + '  ' : w0 === 'women' ? "WOMEN'S  " : w0 === 'mixed' ? 'MIXED  ' : '';
-    ctx.fillText((PROMO && PROMO.dania ? 'DANIA BEACH INVITATIONAL  \u00b7  ' : cfg.comp === 'hvp' ? 'HOOTS VS PEAKS  \u00b7  ' : cfg.comp === 'world' ? 'WORLD CUP  \u00b7  ' : cfg.comp === 'league' ? 'LEAGUE PLAY  \u00b7  ' : '') + whoTag + (game.cfg.singles ? 'SINGLES' : 'DOUBLES') + (showRally ? '' : PROMO && PROMO.dania ? '  \u00b7  SPECTACULAR 9' : '  \u00b7  PLAY TO ' + cfg.target), x + 22, y + 231);
+    ctx.fillText((PROMO && PROMO.dania ? 'DANIA BEACH INVITATIONAL  \u00b7  ' : cfg.comp === 'hvp' ? 'HOOTS VS PEAKS  \u00b7  ' : cfg.comp === 'world' ? 'WORLD CUP  \u00b7  ' : cfg.comp === 'league' ? 'LEAGUE PLAY  \u00b7  ' : '') + whoTag + (game.cfg.singles ? 'SINGLES' : 'DOUBLES') + (showRally ? '' : PROMO && PROMO.dania ? '  \u00b7  SPECTACULAR 7' : '  \u00b7  PLAY TO ' + cfg.target), x + 22, y + 231);
     ctx.textAlign = 'right';
     if (showRally) ctx.fillText('RALLY ' + game.rally, x + w - 22, y + 231);
   }
@@ -4596,6 +4596,7 @@ window.FLFeedback = (function () {
     applyTeams();
     promoEl.hidden = true; document.body.classList.remove('promo-open');
     unlock(); tryStart();
+    if (PROMO.dania) setTimeout(pmRules, 700);
   }
   function promoPaint() {                                          // the art, the names and the team marks follow who is picked, in which uniform, and who you play
     if (PROMO.dania) return dPaint();
@@ -4614,11 +4615,11 @@ window.FLFeedback = (function () {
     $('pmAds').disabled = $('pmFree').disabled = !ready; el.classList.toggle('pm-ready', ready);
     el.querySelector('.pm-art').setAttribute('aria-label', ready ? P.people[promoSel[0]].name + ' versus ' + P.people[promoSel[1]].name : 'Pick two players');
   }
-  /* ---------- 5th Annual Dania Beach Invitational: pari-mutuel play, Spectacular 9 ----------
+  /* ---------- 5th Annual Dania Beach Invitational: pari-mutuel play, Spectacular 7 ----------
      You pick a front courter and a back courter and take Post 1. The CPU makes the other seven teams from the rest of the roster (Posts 2 to 8).
      Post 1 meets Post 2; the winner of each point stays and meets the next post in line, the loser goes to the back of the line.
-     A point is worth 1 until all eight posts have played (the first seven points), then 2. First to 9 wins. Every post wears its own shirt colour. */
-  var PMC = [['Red', '#d81e2c'], ['Blue', '#1f56d8'], ['White', '#f4f4f4'], ['Green', '#1f9d48'], ['Black', '#17171a'], ['Yellow', '#f2d21f'], ['Brown', '#7a4a25'], ['Purple', '#7b35c9']];
+     A point is worth 1 until all eight posts have played (the first seven points), then 2. First to 7 wins; ties for 2nd and 3rd are settled by a quick playoff. Every post wears its own shirt colour. */
+  var PMC = [['Red', '#d81e2c'], ['Blue', '#1f56d8'], ['White', '#f4f4f4'], ['Green', '#1f9d48'], ['Black', '#17171a'], ['Gold', '#d4a72c'], ['Brown', '#7a4a25'], ['Purple', '#7b35c9']];
   function pmPair(p) { var P = PROMO.people, f = p && p.f != null ? P[p.f] : null, b = p && p.b != null ? P[p.b] : null, lead = f && f.face ? f : b && b.face ? b : f || b;
     return !lead ? NOBODY : { name: f && b ? f.name + ' & ' + b.name : lead.name, look: 0, face: lead.face || null, skin: null, _img: lead._img || null }; }
   function pmDraw() {                                               // the CPU fills Posts 2 to 8 from the players you did not take
@@ -4629,13 +4630,26 @@ window.FLFeedback = (function () {
     if (a[0] != null && a[1] != null) for (k = 0; k < 7; k++) PM.posts.push({ f: F[k], b: B[k] });
     else { var all = mix(F.slice(0, 4).map(function (i) { return { f: i, b: null }; }).concat(B.slice(0, 4).map(function (i) { return { f: null, b: i }; }))); for (k = 0; k < 7; k++) PM.posts.push(all[k]); }   // singles: seven single players
   }
-  function pmReset() { PM.pts = [0, 0, 0, 0, 0, 0, 0, 0]; PM.line = [2, 3, 4, 5, 6, 7]; PM.opp = 1; PM.n = 0; PM.over = false; PM.log = []; PM.lastW = -1; PM.run = 0; dRecalc(); }
+  function pmReset() { PM.pts = [0, 0, 0, 0, 0, 0, 0, 0]; PM.line = [2, 3, 4, 5, 6, 7]; PM.opp = 1; PM.n = 0; PM.over = false; PM.log = []; PM.lastW = -1; PM.run = 0; PM.order = []; PM.playoff = []; dRecalc(); }
   function pmPostName(k) { return pmPair(PM.posts[k]).name; }
   function pmScore(w, l) {                                          // one point played: the winner stays, the loser goes to the back of the line
     var val = PM.n < 7 ? 1 : 2; PM.n++; PM.pts[w] += val; if (PM.lastW === w) PM.run++; else { PM.lastW = w; PM.run = 1; }
-    if (PM.pts[w] >= 9) { PM.over = true; PM.champ = w; }
+    if (PM.pts[w] >= 7) { PM.over = true; PM.champ = w; pmFinish(); }
     else { PM.line.push(l); PM.court = [w, PM.line.shift()]; }
     PM.log.push({ w: w, l: l, v: val, pts: PM.pts.slice(), court: PM.over ? [] : PM.court.slice(), n: PM.n });   // how the board stood after this point
+  }
+  function pmFinish() {                                          // the order of finish: the winner, then the rest by points; a tie that touches 2nd or 3rd goes to a quick playoff
+    var rest = [0, 1, 2, 3, 4, 5, 6, 7].filter(function (k) { return k !== PM.champ; }), out = [PM.champ];
+    rest.sort(function (a, b) { return PM.pts[b] - PM.pts[a]; }); PM.playoff = [];
+    while (rest.length) {
+      var p = PM.pts[rest[0]], tie = rest.filter(function (k) { return PM.pts[k] === p; }); rest = rest.slice(tie.length);
+      if (tie.length > 1 && out.length < 3) {                   // the CPU plays it off: winner of each playoff point takes the next place
+        for (var i = tie.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), x = tie[i]; tie[i] = tie[j]; tie[j] = x; }
+        PM.playoff.push({ place: out.length + 1, order: tie.slice() });
+      } else tie.sort(function (a, b) { return a - b; });
+      out = out.concat(tie);
+    }
+    PM.order = out;
   }
   function pmPoint(side) {                                          // your point ended: side 0 is your post, side 1 the post you were playing
     if (!PM.on || PM.open) return;
@@ -4644,9 +4658,17 @@ window.FLFeedback = (function () {
     PM.open = true;
     setTimeout(pmBoard, 1300);                                      // let the call of the point be seen first
   }
+  function pmRules() {                                           // How to Play, shown as each Dania game begins; play waits until it is closed
+    var el = $('pmRules');
+    if (!el) { el = document.createElement('div'); el.id = 'pmRules'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-modal', 'true'); el.setAttribute('aria-labelledby', 'pmRulesH'); document.body.appendChild(el);
+      el.addEventListener('click', function (e) { if (e.target.closest('button')) { el.hidden = true; PM.open = false; if (window.Table && window.Table.isOpen()) window.Table.resume(); } }); }
+    el.innerHTML = '<div class="pb-in"><h3 id="pmRulesH">How to Play</h3><p class="pr-t">First team to 7 points takes the win! Points double after the first round, and 2nd and 3rd place are decided by the remaining scores\u2014with a quick playoff to break any ties.</p><div class="pb-go"><button type="button">Let\u2019s Play</button></div></div>';
+    PM.open = true; el.hidden = false; if (window.Table && window.Table.isOpen()) window.Table.pause();
+    try { el.querySelector('button').focus(); } catch (e) { /* ignore */ }
+  }
   function pmBoard() {
     var el = $('pmBoard');
-    if (!el) { el = document.createElement('div'); el.id = 'pmBoard'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-modal', 'true'); el.setAttribute('aria-label', 'Spectacular 9 scoreboard'); document.body.appendChild(el);
+    if (!el) { el = document.createElement('div'); el.id = 'pmBoard'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-modal', 'true'); el.setAttribute('aria-label', 'Spectacular 7 scoreboard'); document.body.appendChild(el);
       el.addEventListener('click', function (e) { var b = e.target.closest('button[data-pm]'); if (b && !b.disabled) pmNext(b.getAttribute('data-pm')); }); }
     if (window.Table && window.Table.isOpen()) window.Table.pause();
     PM.step = 0; el.hidden = false; pmShow();
@@ -4654,14 +4676,16 @@ window.FLFeedback = (function () {
   function pmShow() {                                               // one result at a time: your point first, then each CPU game a second apart until you are up again
     var el = $('pmBoard'); if (!el || !PM.open) return;
     var g = PM.log[PM.step], last = PM.step >= PM.log.length - 1, fin = last && PM.over, order = [0, 1, 2, 3, 4, 5, 6, 7], place = ['Win', 'Place', 'Show'], other = function (c) { return c[0] === 0 ? c[1] : c[0]; };
-    if (fin) order.sort(function (a, b) { return g.pts[b] - g.pts[a] || a - b; });
+    if (fin) order = PM.order.slice();
     var who = function (k) { return 'Post ' + (k + 1) + (k === 0 ? ' (You)' : ''); };
-    el.innerHTML = '<div class="pb-in"><h3>Spectacular 9</h3><p class="pb-sub">' + (fin ? 'Final' : 'Points are worth ' + (g.n < 7 ? '1 until every post has played' : '2 now') + ' \u00b7 First to 9 wins') + '</p>' +
+    el.innerHTML = '<div class="pb-in"><h3>Spectacular 7</h3><p class="pb-sub">' + (fin ? 'Final' : 'Points are worth ' + (g.n < 7 ? '1 until every post has played' : '2 now') + ' \u00b7 First to 7 wins') + '</p>' +
       '<p class="pb-res" aria-live="polite"><b>' + who(g.w) + '</b> beats ' + who(g.l) + ' <em>+' + g.v + '</em></p>' +
       '<ol class="pb-list">' + order.map(function (k, i) { var c = PMC[k];
         return '<li class="' + (k === 0 ? 'pb-you ' : '') + (g.court.indexOf(k) >= 0 ? 'pb-on ' : '') + (k === g.w ? 'pb-win' : '') + '"><span class="pb-chip" style="background:' + c[1] + ';color:' + (k === 2 || k === 5 ? '#111' : '#fff') + '">' + (k + 1) + '</span>' +
           '<span class="pb-nm">' + esc(pmPostName(k)) + (k === 0 ? ' <u>You</u>' : '') + (fin && i < 3 ? ' <u class="pb-pl">' + place[i] + '</u>' : '') + '</span><b class="pb-pts">' + g.pts[k] + '</b></li>'; }).join('') + '</ol>' +
-      (fin ? '<p class="pb-next">' + (PM.champ === 0 ? 'You win the game!' : 'Post ' + (PM.champ + 1) + ' wins: ' + esc(pmPostName(PM.champ))) + '</p><div class="pb-go"><button type="button" data-pm="again">Play Again</button><button type="button" data-pm="menu">New Team</button></div>'
+      (fin ? '<p class="pb-ord">Order of finish <b>' + PM.order.slice(0, 3).map(function (k) { return k + 1; }).join('\u2013') + '</b></p>' +
+        PM.playoff.map(function (o) { var nth = ['', '1st', '2nd', '3rd'][o.place] || o.place + 'th'; return '<p class="pb-po">Playoff for ' + nth + ' (tied at ' + PM.pts[o.order[0]] + '): ' + o.order.map(function (k) { return 'Post ' + (k + 1); }).join(' beats ') + '</p>'; }).join('') +
+        '<p class="pb-next">' + (PM.champ === 0 ? 'You win the game!' : 'Post ' + (PM.champ + 1) + ' wins: ' + esc(pmPostName(PM.champ))) + '</p><div class="pb-go"><button type="button" data-pm="again">Play Again</button><button type="button" data-pm="menu">New Team</button></div>'
         : last ? '<p class="pb-next">You are up: Post 1 vs Post ' + (other(g.court) + 1) + ' \u00b7 ' + PMC[other(g.court)][0] + '</p><div class="pb-go"><button type="button" data-pm="go">Continue</button></div>'
         : '<p class="pb-next">On the court: Post ' + (g.court[0] + 1) + ' vs Post ' + (g.court[1] + 1) + '</p><div class="pb-go"><button type="button" disabled>Waiting for your turn\u2026</button></div>');
     if (!last) setTimeout(function () { if (PM.open && $('pmBoard') && !$('pmBoard').hidden) { PM.step++; pmShow(); } }, 1000);
@@ -4671,7 +4695,7 @@ window.FLFeedback = (function () {
     var el = $('pmBoard'), tb = window.Table && window.Table.isOpen(), g = tb ? window.Table.game() : game;
     if (el) el.hidden = true;
     if (what === 'menu') { PM.open = false; PM.on = false; if (tb) window.Table.close(); startDemo(); return; }
-    if (what === 'again') pmReset(); else PM.opp = PM.court[0] === 0 ? PM.court[1] : PM.court[0];
+    if (what === 'again') { pmReset(); setTimeout(pmRules, 400); } else PM.opp = PM.court[0] === 0 ? PM.court[1] : PM.court[0];
     cfg.pick = [14, 14 + PM.opp]; dRecalc(); applyTeams();
     if (g) g.score = [PM.pts[0], PM.pts[PM.opp]];
     if (tb) { window.Table.setTeam(1, window.__tblTeam(1)); window.Table.resume(); }
@@ -4746,6 +4770,9 @@ window.FLFeedback = (function () {
       '#promo.pm-dania .pm-modes button[aria-pressed="true"]{background:' + OR + ';color:#0b0c0f;border-color:' + OR + '}#promo.pm-dania .pm-modes button{border-color:' + OR + '}' +
       '#promo.pm-dania #pmAds{background:' + OR + ';color:#0b0c0f;border:2px solid ' + OR + '}#promo.pm-dania #pmFree{background:transparent;color:#fff;border:2px solid ' + OR + '}' +
       '@media (orientation:landscape) and (max-height:560px){#promo.pm-dania{--ch:clamp(76px,calc((100dvh - 136px) / 2),170px)}#promo .db-art{width:48%}}' +
+      '#pmRules{position:fixed;inset:0;z-index:2147482100;background:rgba(4,5,10,.82);display:flex;align-items:center;justify-content:center;padding:14px;font-family:' + F + ';color:#f2efe6}#pmRules[hidden]{display:none}' +
+      '#pmRules .pb-in{width:min(100%,360px);box-sizing:border-box;background:#0b0e1c;border:2px solid ' + OR + ';border-radius:16px;padding:16px 16px 14px;display:flex;flex-direction:column;gap:12px}#pmRules h3{margin:0;text-align:center;font:900 19px/1 ' + F + ';letter-spacing:.14em;text-transform:uppercase;color:' + OR + '}' +
+      '#pmRules .pr-t{margin:0;text-align:center;font:600 15px/1.45 ' + F + ';color:#f2efe6}#pmRules .pb-go{display:flex}#pmRules .pb-go button{flex:1;min-height:46px;border-radius:12px;border:2px solid ' + OR + ';background:' + OR + ';color:#0b0c0f;font:800 15px/1 ' + F + ';letter-spacing:.06em;text-transform:uppercase;cursor:pointer}#pmRules button:focus-visible{outline:3px solid #fff;outline-offset:2px}' +
       '#pmBoard{position:fixed;inset:0;z-index:2147482000;background:rgba(4,5,10,.82);display:flex;align-items:center;justify-content:center;padding:10px;font-family:' + F + ';color:#f2efe6}#pmBoard[hidden]{display:none}' +
       '#pmBoard .pb-in{width:min(100%,400px);max-height:100%;overflow:auto;box-sizing:border-box;background:#0b0e1c;border:2px solid ' + OR + ';border-radius:16px;padding:12px 12px 14px;display:flex;flex-direction:column;gap:7px}' +
       '#pmBoard h3{margin:0;text-align:center;font:900 18px/1 ' + F + ';letter-spacing:.14em;text-transform:uppercase;color:' + OR + '}' +
@@ -4757,6 +4784,7 @@ window.FLFeedback = (function () {
       '#pmBoard .pb-list li.pb-on{border-color:#fff;background:#1b2140}#pmBoard .pb-list li.pb-you{box-shadow:inset 3px 0 0 ' + OR + '}' +
       '#pmBoard .pb-list u{text-decoration:none;font:800 9px/1 ' + F + ';letter-spacing:.12em;text-transform:uppercase;color:#0b0c0f;background:' + OR + ';border-radius:4px;padding:2px 4px;margin-left:4px}#pmBoard .pb-list u.pb-pl{background:#f2efe6}' +
       '#pmBoard .pb-pts{margin-left:auto;font:900 16px/1 ' + F + ';min-width:18px;text-align:right}' +
+      '#pmBoard .pb-ord{margin:2px 0 0;text-align:center;font:700 12px/1.2 ' + F + ';letter-spacing:.08em;text-transform:uppercase;color:#a9adba}#pmBoard .pb-ord b{font-size:17px;letter-spacing:.06em;color:#fff;margin-left:6px}#pmBoard .pb-po{margin:0;text-align:center;font:600 11.5px/1.25 ' + F + ';color:' + OR + '}' +
       '#pmBoard .pb-next{margin:2px 0 0;text-align:center;font:700 12.5px/1.2 ' + F + ';color:#fff}' +
       '#pmBoard .pb-go{display:flex;gap:8px}#pmBoard .pb-go button{flex:1 1 0;min-height:44px;border-radius:12px;border:2px solid ' + OR + ';background:' + OR + ';color:#0b0c0f;font:800 14px/1 ' + F + ';letter-spacing:.06em;text-transform:uppercase;cursor:pointer}#pmBoard .pb-go button + button{background:transparent;color:#fff}' +
       '#pmBoard button:focus-visible{outline:3px solid #fff;outline-offset:2px}' +
